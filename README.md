@@ -1,6 +1,6 @@
-# Doorman Workspace Addon
+# Doorman Workspace Add-on
 
-The Doorman Workspace Addon enables organization members to edit and store their KIT-Card chip numbers in the custom fuks user scheme.
+The Doorman Workspace Add-on enables organization members to edit and store their KIT-Card chip numbers in the custom fuks user scheme.
 
 ## Deployment
 
