@@ -1,3 +1,6 @@
+// Import for local javascript development --> Comment on Google Apps Script
+// import "google-apps-script";
+
 // Widgets: https://developers.google.com/apps-script/reference/card-service/text-input
 
 function onHomepage(event) {
@@ -93,7 +96,7 @@ function onSave(event) {
   const ok = chipnumber > 0;
 
   if (ok) {
-    userdata.customSchemas["fuks"]["KIT_Card_Chipnummer"] = chipnumber;
+    userdata.customSchemas["fuks"]["KIT_Card_Chipnummer"] = input;
     AdminDirectory.Users.update(userdata, email);
   }
 
@@ -116,7 +119,7 @@ function onSave(event) {
       ? "Success"
       : "Error")
     .setText(ok
-      ? "Saved '" + chipnumber + "' as chipnumber"
+      ? "Saved '" + input + "' as chipnumber"
       : "The input '" + input + "' is not a valid chipnumber")
     .setIconUrl(ok
       ? "https://www.gstatic.com/images/icons/material/system/1x/check_circle_black_48dp.png"
