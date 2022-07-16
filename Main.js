@@ -5,8 +5,8 @@ function onHomepage(event) {
   return buildCard(true);
 }
 
-function onDriveItemsSelected(e) {
-  console.log(e);
+function onDriveItemsSelected(event) {
+  console.log(event);
   return buildCard(false);
 }
 
@@ -50,7 +50,7 @@ function buildCard(isHomepage) {
     .setMultiline(false);
 
   var saveAction = CardService.newAction()
-    .setFunctionName('onChange');
+    .setFunctionName('onSave');
 
   var button = CardService.newTextButton()
     .setText('Save')
@@ -81,7 +81,7 @@ function buildCard(isHomepage) {
   return card.build();
 }
 
-function onChange(event) {
+function onSave(event) {
 
   var email = Session.getActiveUser().getEmail();
   var userdata = AdminDirectory.Users.get(email, {
