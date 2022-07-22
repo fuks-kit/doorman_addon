@@ -5,21 +5,23 @@
 
 function onHomepage(event) {
   console.log(event);
-  
-  var card = CardService.newCardBuilder()
+
+  return CardService.newCardBuilder()
     .addSection(buildStep1())
     .addSection(buildStep2())
-    .addSection(buildStep3());
+    .addSection(buildStep3())
+    .build();
+}
 
-  return card.build();
+function getUserdata() {
+  const email = Session.getActiveUser().getEmail();
+  return AdminDirectory.Users.get(email, {
+    "projection": "full",
+  });
 }
 
 function getCurrentChipnumber() {
-  const email = Session.getActiveUser().getEmail();
-  const userdata = AdminDirectory.Users.get(email, {
-    "projection": "full",
-  });
-
+  const userdata = getUserdata();
   if (!userdata.hasOwnProperty("customSchemas")) {
     return "";
   }
@@ -43,15 +45,13 @@ function buildStep1() {
       + "You must be a member of the \"aktive@fuks.org\" workspace group to gain access. "
       + "Follow the next steps to add your KIT-Card chip number to the system.");
 
-  var infoStep = CardService.newCardSection()
+  return CardService.newCardSection()
     .setHeader("Step 1: Read this")
     .addWidget(text);
-
-  return infoStep;
 }
 
 function buildStep2() {
-  var gotoscc = CardService.newDecoratedText()
+  var goto = CardService.newDecoratedText()
     .setText("Go to https://my.scc.kit.edu > Anmelden > Konto/KIT-Account > KIT-Card")
     .setWrapText(true)
     .setOpenLink(CardService.newOpenLink()
@@ -59,15 +59,13 @@ function buildStep2() {
       .setOpenAs(CardService.OpenAs.OVERLAY)
       .setOnClose(CardService.OnClose.NOTHING));
 
-  var step2 = CardService.newCardSection()
+  return CardService.newCardSection()
     .setHeader("Step 2: Find your chipnumber")
-    .addWidget(gotoscc);
-
-  return step2;
+    .addWidget(goto);
 }
 
 function buildStep3() {
-  var chipnumber = CardService.newTextInput()
+  var input = CardService.newTextInput()
     .setFieldName("KIT_Card_Chipnummer")
     .setTitle("KIT-Card Chipnummer")
     .setValue(getCurrentChipnumber())
@@ -79,26 +77,21 @@ function buildStep3() {
       .setFunctionName('onSave'))
     .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
 
-  var step3 = CardService.newCardSection()
+  return CardService.newCardSection()
     .setHeader("Step 3: Save your chipnumber")
-    .addWidget(chipnumber)
+    .addWidget(input)
     .addWidget(save);
-
-  return step3;
 }
 
 function onSave(event) {
-
-  var email = Session.getActiveUser().getEmail();
-  var userdata = AdminDirectory.Users.get(email, {
-    "projection": "full",
-  });
 
   const input = event.formInput["KIT_Card_Chipnummer"];
   const chipnumber = parseInt(input);
   const ok = chipnumber > 0;
 
   if (ok) {
+    const userdata = getUserdata();
+
     if (!userdata.hasOwnProperty("customSchemas")) {
       userdata.customSchemas = {};
     }
@@ -106,15 +99,16 @@ function onSave(event) {
     userdata.customSchemas["fuks"] = {
       "KIT_Card_Chipnummer": input
     };
-    AdminDirectory.Users.update(userdata, email);
-  }
 
-  console.log({
-    "input": event.formInput,
-    "email": email,
-    "customSchemas": userdata.customSchemas,
-    "parsed": chipnumber,
-  });
+    AdminDirectory.Users.update(userdata, email);
+
+    console.log({
+      "input": event.formInput,
+      "email": email,
+      "customSchemas": userdata.customSchemas,
+      "parsed": chipnumber,
+    });
+  }
 
   var status = CardService.newDecoratedText()
     .setTopLabel(ok
@@ -128,7 +122,7 @@ function onSave(event) {
       : "https://www.gstatic.com/images/icons/material/system/1x/error_black_48dp.png"))
     .setWrapText(true);
 
-  return CardService.newCardBuilder().addSection(
-    CardService.newCardSection().addWidget(status)
-  ).build();
+  return CardService.newCardBuilder()
+    .addSection(CardService.newCardSection().addWidget(status))
+    .build();
 }
