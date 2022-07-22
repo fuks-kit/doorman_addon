@@ -13,15 +13,12 @@ function onHomepage(event) {
     .build();
 }
 
-function getUserdata() {
+function getCurrentChipnumber() {
   const email = Session.getActiveUser().getEmail();
-  return AdminDirectory.Users.get(email, {
+  const userdata = AdminDirectory.Users.get(email, {
     "projection": "full",
   });
-}
 
-function getCurrentChipnumber() {
-  const userdata = getUserdata();
   if (!userdata.hasOwnProperty("customSchemas")) {
     return "";
   }
@@ -90,7 +87,10 @@ function onSave(event) {
   const ok = chipnumber > 0;
 
   if (ok) {
-    const userdata = getUserdata();
+    const email = Session.getActiveUser().getEmail();
+    const userdata = AdminDirectory.Users.get(email, {
+      "projection": "full",
+    });
 
     if (!userdata.hasOwnProperty("customSchemas")) {
       userdata.customSchemas = {};
@@ -103,8 +103,8 @@ function onSave(event) {
     AdminDirectory.Users.update(userdata, email);
 
     console.log({
-      "input": event.formInput,
       "email": email,
+      "input": event.formInput,
       "customSchemas": userdata.customSchemas,
       "parsed": chipnumber,
     });
