@@ -5,7 +5,13 @@
 
 function onHomepage(event) {
   console.log(event);
-  return buildCard();
+  
+  var card = CardService.newCardBuilder()
+    .addSection(buildStep1())
+    .addSection(buildStep2())
+    .addSection(buildStep3());
+
+  return card.build();
 }
 
 function getCurrentChipnumber() {
@@ -79,15 +85,6 @@ function buildStep3() {
     .addWidget(save);
 
   return step3;
-}
-
-function buildCard() {
-  var card = CardService.newCardBuilder()
-    .addSection(buildStep1())
-    .addSection(buildStep2())
-    .addSection(buildStep3());
-
-  return card.build();
 }
 
 function onSave(event) {
