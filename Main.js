@@ -31,53 +31,61 @@ function getCurrentChipnumber() {
   return "";
 }
 
-function buildCard() {
-  var action = CardService.newAuthorizationAction()
-    .setAuthorizationUrl('https://my.scc.kit.edu/shib/accountinformationen.php');
-
-  var gotoscc = CardService.newDecoratedText()
-    .setText("Go to https://my.scc.kit.edu > Anmelden > Konto/KIT-Account > KIT-Card")
-    //.setIconUrl("https://www.gstatic.com/images/icons/material/system/1x/launch_black_48dp.png")
-    //.setEndIcon(CardService.newIconImage().setIconUrl("https://www.gstatic.com/images/icons/material/system/1x/launch_black_48dp.png"))
-    .setWrapText(true)
-    .setAuthorizationAction(action);
-
-  var infoText = CardService.newTextParagraph()
+function buildStep1() {
+  var text = CardService.newTextParagraph()
     .setText("The fuks office door can be opened by your KIT-Card. "
       + "You must be a member of the \"aktive@fuks.org\" workspace group to gain access. "
       + "Follow the next steps to add your KIT-Card chip number to the system.");
 
   var infoStep = CardService.newCardSection()
     .setHeader("Step 1: Read this")
-    .addWidget(infoText);
+    .addWidget(text);
+
+  return infoStep;
+}
+
+function buildStep2() {
+  var gotoscc = CardService.newDecoratedText()
+    .setText("Go to https://my.scc.kit.edu > Anmelden > Konto/KIT-Account > KIT-Card")
+    .setWrapText(true)
+    .setOpenLink(CardService.newOpenLink()
+      .setUrl("https://my.scc.kit.edu/shib/accountinformationen.php")
+      .setOpenAs(CardService.OpenAs.OVERLAY)
+      .setOnClose(CardService.OnClose.NOTHING));
 
   var step2 = CardService.newCardSection()
     .setHeader("Step 2: Find your chipnumber")
     .addWidget(gotoscc);
 
+  return step2;
+}
+
+function buildStep3() {
   var chipnumber = CardService.newTextInput()
     .setFieldName("KIT_Card_Chipnummer")
     .setTitle("KIT-Card Chipnummer")
     .setValue(getCurrentChipnumber())
     .setMultiline(false);
 
-  var saveAction = CardService.newAction()
-    .setFunctionName('onSave');
-
-  var button = CardService.newTextButton()
+  var save = CardService.newTextButton()
     .setText('Save')
-    .setOnClickAction(saveAction)
+    .setOnClickAction(CardService.newAction()
+      .setFunctionName('onSave'))
     .setTextButtonStyle(CardService.TextButtonStyle.FILLED);
 
   var step3 = CardService.newCardSection()
     .setHeader("Step 3: Save your chipnumber")
     .addWidget(chipnumber)
-    .addWidget(button);
+    .addWidget(save);
 
+  return step3;
+}
+
+function buildCard() {
   var card = CardService.newCardBuilder()
-    .addSection(infoStep)
-    .addSection(step2)
-    .addSection(step3);
+    .addSection(buildStep1())
+    .addSection(buildStep2())
+    .addSection(buildStep3());
 
   return card.build();
 }
@@ -117,17 +125,13 @@ function onSave(event) {
       : "Error")
     .setText(ok
       ? "Saved '" + input + "' as chipnumber"
-      : "The input '" + input + "' is not a valid chipnumber")
-    .setIconUrl(ok
-      ? "https://www.gstatic.com/images/icons/material/system/1x/check_circle_black_48dp.png"
-      : "https://www.gstatic.com/images/icons/material/system/1x/error_black_48dp.png")
-    //.setEndIcon(CardService.newIconImage().setIconUrl(ok
-    //  ? "https://www.gstatic.com/images/icons/material/system/1x/check_circle_black_48dp.png"
-    //  : "https://www.gstatic.com/images/icons/material/system/1x/error_black_48dp.png"))
+      : "The input '" + input + "' not a valid chipnumber")
+    .setEndIcon(CardService.newIconImage().setIconUrl(ok
+      ? "https://www.gstatic.com/images/icons/material/system/1x/check_black_48dp.png"
+      : "https://www.gstatic.com/images/icons/material/system/1x/error_black_48dp.png"))
     .setWrapText(true);
 
   return CardService.newCardBuilder().addSection(
     CardService.newCardSection().addWidget(status)
   ).build();
 }
-
