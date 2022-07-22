@@ -5,33 +5,47 @@
 
 function onHomepage(event) {
   console.log(event);
-  return buildCard(true);
+  return buildCard();
 }
 
-function onDriveItemsSelected(event) {
-  console.log(event);
-  return buildCard(false);
-}
+function getCurrentChipnumber() {
+  const email = Session.getActiveUser().getEmail();
+  const userdata = AdminDirectory.Users.get(email, {
+    "projection": "full",
+  });
 
-function buildCard(isHomepage) {
-  if (!isHomepage) {
-    isHomepage = false;
+  if (!userdata.hasOwnProperty("customSchemas")) {
+    return "";
   }
 
+  const customSchemas = userdata["customSchemas"];
+  if (!customSchemas.hasOwnProperty("fuks")) {
+    return "";
+  }
+
+  const fuks = customSchemas["fuks"];
+  if (fuks.hasOwnProperty("KIT_Card_Chipnummer")) {
+    return fuks["KIT_Card_Chipnummer"];
+  }
+
+  return "";
+}
+
+function buildCard() {
   var action = CardService.newAuthorizationAction()
     .setAuthorizationUrl('https://my.scc.kit.edu/shib/accountinformationen.php');
 
   var gotoscc = CardService.newDecoratedText()
     .setText("Go to https://my.scc.kit.edu > Anmelden > Konto/KIT-Account > KIT-Card")
-    // .setIconUrl("https://www.gstatic.com/images/icons/material/system/1x/launch_black_48dp.png")
+    //.setIconUrl("https://www.gstatic.com/images/icons/material/system/1x/launch_black_48dp.png")
     //.setEndIcon(CardService.newIconImage().setIconUrl("https://www.gstatic.com/images/icons/material/system/1x/launch_black_48dp.png"))
     .setWrapText(true)
     .setAuthorizationAction(action);
 
   var infoText = CardService.newTextParagraph()
     .setText("The fuks office door can be opened by your KIT-Card. "
-      + "To gain access you need to be a member in the \"aktive\" Workspace group. "
-      + "You also need add your KIT-Card chipnumber to the the input field below.");
+      + "You must be a member of the \"aktive@fuks.org\" workspace group to gain access. "
+      + "Follow the next steps to add your KIT-Card chip number to the system.");
 
   var infoStep = CardService.newCardSection()
     .setHeader("Step 1: Read this")
@@ -41,15 +55,10 @@ function buildCard(isHomepage) {
     .setHeader("Step 2: Find your chipnumber")
     .addWidget(gotoscc);
 
-  var email = Session.getActiveUser().getEmail();
-  var userdata = AdminDirectory.Users.get(email, {
-    "projection": "full",
-  });
-
   var chipnumber = CardService.newTextInput()
     .setFieldName("KIT_Card_Chipnummer")
     .setTitle("KIT-Card Chipnummer")
-    .setValue(userdata["customSchemas"]["fuks"]["KIT_Card_Chipnummer"])
+    .setValue(getCurrentChipnumber())
     .setMultiline(false);
 
   var saveAction = CardService.newAction()
@@ -70,17 +79,6 @@ function buildCard(isHomepage) {
     .addSection(step2)
     .addSection(step3);
 
-  if (!isHomepage) {
-    // Create the header shown when the card is minimized,
-    // but only when this card is a contextual card. Peek headers
-    // are never used by non-contexual cards like homepages.
-    var peekHeader = CardService.newCardHeader()
-      .setTitle('Contextual Cat')
-      .setImageUrl('https://www.gstatic.com/images/icons/material/system/1x/key_black_48dp.png')
-      .setSubtitle("subtitle");
-    card.setPeekCardHeader(peekHeader)
-  }
-
   return card.build();
 }
 
@@ -96,23 +94,22 @@ function onSave(event) {
   const ok = chipnumber > 0;
 
   if (ok) {
-    userdata.customSchemas["fuks"]["KIT_Card_Chipnummer"] = input;
+    if (!userdata.hasOwnProperty("customSchemas")) {
+      userdata.customSchemas = {};
+    }
+
+    userdata.customSchemas["fuks"] = {
+      "KIT_Card_Chipnummer": input
+    };
     AdminDirectory.Users.update(userdata, email);
   }
 
-  /*
-  return CardService.newCardBuilder()
-    .setHeader(CardService.newCardHeader().setTitle('Status'))
-    .addSection(CardService.newCardSection().addWidget(
-      CardService.newKeyValue().setContent(JSON.stringify({
-        "input": event.formInput,
-        "email": email,
-        "customSchemas": userdata.customSchemas,
-        "parse": chipnumber,
-      }, null, "  ")))
-    )
-    .build();
-  */
+  console.log({
+    "input": event.formInput,
+    "email": email,
+    "customSchemas": userdata.customSchemas,
+    "parsed": chipnumber,
+  });
 
   var status = CardService.newDecoratedText()
     .setTopLabel(ok
